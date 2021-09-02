@@ -81,20 +81,11 @@ int main(int argc, char **argv)
   
   // create events and streams
   cudaEvent_t startEvent, stopEvent, dummyEvent;
-<<<<<<< HEAD
   cudaStream_t stream;
   checkCuda( cudaEventCreate(&startEvent) );
   checkCuda( cudaEventCreate(&stopEvent) );
   checkCuda( cudaEventCreate(&dummyEvent) );
   checkCuda( cudaStreamCreate(&stream) );
-=======
-  cudaStream_t stream[nStreams];
-  checkCuda( cudaEventCreate(&startEvent) );
-  checkCuda( cudaEventCreate(&stopEvent) );
-  checkCuda( cudaEventCreate(&dummyEvent) );
-  for (int i = 0; i < nStreams; ++i)
-    checkCuda( cudaStreamCreate(&stream[i]) );
->>>>>>> 50d4f7e932f62213fb7eb1e0c49d0c6a43999541
   
   // baseline case - sequential transfer and execute pinned
   memset(a, 0, bytes);
@@ -108,7 +99,7 @@ int main(int argc, char **argv)
   printf("Time for sequential transfer pinned and execute (ms): %f\n", ms);
 
   // baseline case - sequential transfer and execute pageable
-  memset(a, 0, bytes);
+  memset(h_a, 0, bytes);
   checkCuda( cudaEventRecord(startEvent,0) );
   checkCuda( cudaMemcpy(d_a, h_a, bytes, cudaMemcpyHostToDevice) );
   kernel<<<n/blockSize, blockSize>>>(d_a, 0);
@@ -119,16 +110,11 @@ int main(int argc, char **argv)
   printf("Time for sequential transfer pageable and execute (ms): %f\n", ms);
 
 
-<<<<<<< HEAD
   // asynchronous version  {copy, kernel, copy} pinned
-=======
-  // asynchronous version  {copy, kernel, copy}
->>>>>>> 50d4f7e932f62213fb7eb1e0c49d0c6a43999541
   memset(a, 0, bytes);
   checkCuda( cudaEventRecord(startEvent,0) );
   checkCuda( cudaMemcpyAsync(&d_a, &a, 
 			  bytes, cudaMemcpyHostToDevice, 
-<<<<<<< HEAD
 			  stream) );
   kernel<<<n/blockSize, blockSize, 0, stream>>>(d_a, 0);
   checkCuda( cudaMemcpyAsync(&a, &d_a, 
@@ -149,36 +135,16 @@ int main(int argc, char **argv)
   checkCuda( cudaMemcpyAsync(&h_a, &d_a, 
 			  bytes, cudaMemcpyDeviceToHost,
 			  stream) );
-=======
-			  stream[0]) );
-  kernel<<<n/blockSize, blockSize, 0, stream[0]>>>(d_a, 0);
-  checkCuda( cudaMemcpyAsync(&a, &d_a, 
-			  bytes, cudaMemcpyDeviceToHost,
-			  stream[0]) );
-  checkCuda( cudaMemcpyAsync(&h_a, &d_a, 
-			  bytes, cudaMemcpyDeviceToHost,
-			  stream[0]) );
->>>>>>> 50d4f7e932f62213fb7eb1e0c49d0c6a43999541
   checkCuda( cudaEventRecord(stopEvent, 0) );
   checkCuda( cudaEventSynchronize(stopEvent) );
   checkCuda( cudaEventElapsedTime(&ms, startEvent, stopEvent) );
   printf("Time for asynchronous transfer and execute (ms): %f\n", ms);
 
-
-<<<<<<< HEAD
-
-=======
->>>>>>> 50d4f7e932f62213fb7eb1e0c49d0c6a43999541
   // cleanup
   checkCuda( cudaEventDestroy(startEvent) );
   checkCuda( cudaEventDestroy(stopEvent) );
   checkCuda( cudaEventDestroy(dummyEvent) );
-<<<<<<< HEAD
   checkCuda( cudaStreamDestroy(stream) );
-=======
-  for (int i = 0; i < nStreams; ++i)
-    checkCuda( cudaStreamDestroy(stream[i]) );
->>>>>>> 50d4f7e932f62213fb7eb1e0c49d0c6a43999541
   cudaFree(d_a);
   cudaFreeHost(a);
   free(h_a);
