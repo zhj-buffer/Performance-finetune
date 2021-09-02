@@ -52,11 +52,11 @@ __global__ void kernel(float *a, int offset)
 
 int main(int argc, char **argv)
 {
-  const int blockSize = 256, nStreams = 4;
-  const int n = 4 * 1024 * blockSize * nStreams;
-  const int streamSize = n / nStreams;
-  const int streamBytes = streamSize * sizeof(float);
-  const int bytes = n * sizeof(float);
+  const long blockSize = 1024, msize = 128;
+  const long n = 1024 * blockSize * msize;
+  const long bytes = n * sizeof(float);
+
+  printf("Mem used for transfer: %luMB\n", bytes/1024/1024);
    
   int devId = 0;
   if (argc > 1) devId = atoi(argv[1]);
@@ -123,7 +123,7 @@ int main(int argc, char **argv)
   checkCuda( cudaEventRecord(stopEvent, 0) );
   checkCuda( cudaEventSynchronize(stopEvent) );
   checkCuda( cudaEventElapsedTime(&ms, startEvent, stopEvent) );
-  printf("Time for asynchronous transfer and execute (ms): %f\n", ms);
+  printf("Time for asynchronous transfer pinned and execute (ms): %f\n", ms);
 
   // asynchronous version  {copy, kernel, copy} pageable
   memset(h_a, 0, bytes);
@@ -138,7 +138,7 @@ int main(int argc, char **argv)
   checkCuda( cudaEventRecord(stopEvent, 0) );
   checkCuda( cudaEventSynchronize(stopEvent) );
   checkCuda( cudaEventElapsedTime(&ms, startEvent, stopEvent) );
-  printf("Time for asynchronous transfer and execute (ms): %f\n", ms);
+  printf("Time for asynchronous transfer pageable and execute (ms): %f\n", ms);
 
   // cleanup
   checkCuda( cudaEventDestroy(startEvent) );
